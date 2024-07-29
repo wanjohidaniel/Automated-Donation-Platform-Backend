@@ -1,15 +1,18 @@
 import os
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify, make_response, session
 from flask_restful import Resource, Api
 from flask_migrate import Migrate
+from sqlalchemy.exc import IntegrityError
+from flask_bcrypt import Bcrypt
+
+from models import db, Charity, User
 
 
-from models import db, Charity
-
-#DATABASE_URI = "postgresql://backend_1fsr_user:5Ipy3vtPoazu0UtLmACn4Bo166WjWwCs@dpg-cqjrrotds78s73f486bg-a.oregon-postgres.render.com/asset_db"
-DATABASE_URI = os.environ.get("postgresql://backend_1fsr_user:5Ipy3vtPoazu0UtLmACn4Bo166WjWwCs@dpg-cqjrrotds78s73f486bg-a.oregon-postgres.render.com/asset_db")
 app = Flask(__name__)
 api = Api(app)
+
+bcrypt = Bcrypt(app)
+
 
 os.environ["DB_EXTERNAL_URL"] = "postgresql://backend_1fsr_user:5Ipy3vtPoazu0UtLmACn4Bo166WjWwCs@dpg-cqjrrotds78s73f486bg-a.oregon-postgres.render.com/asset_db"
 os.environ["DB_INTERNAL_URL"] = "postgresql://backend_1fsr_user:5Ipy3vtPoazu0UtLmACn4Bo166WjWwCs@dpg-cqjrrotds78s73f486bg-a/asset_db"
@@ -64,8 +67,60 @@ class Charities(Resource):
             db.session.commit()
             return {"result": "success"}
 
-api.add_resource(Charities, "/charities", "/charities/<int:charity_id>")
+class Login(Resource):
+   def post(self):
 
+        request_json = request.get_json()
+
+        username = request_json.get('username')
+        password = request_json.get('password')
+
+        user = User.query.filter(User.username == username).first()
+
+        if user:
+            if user.authenticate(password):
+
+                session['user_id'] = user.id
+                return user.to_dict(), 200
+
+        return {'error': '401 Unauthorized'}, 401
+
+class Signup(Resource):
+    def post(self):
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        email = data.get('email')
+        if not all([username, email, password]):
+            return {'error': '422 Unprocessable Entity'}, 422
+        user = User(username=username, email=email)
+        
+         # the setter will encrypt this
+        user.password_hash = password
+
+        try:
+            db.session.add(user)
+            db.session.commit()
+            session['user_id'] = user.id
+            return user.to_dict(), 201
+        except IntegrityError:
+            return {'error': '422 Unprocessable Entity'}, 422
+
+class Logout(Resource):
+    def delete(self):
+        session['user_id'] = None
+        return {"message": "Logged out successfully"}, 200
+class Users(Resource):
+    def get(self):
+        users = [user.to_dict() for user in User.query.all()]
+        response = make_response(jsonify(users), 200)
+        return response
+       
+api.add_resource(Signup, '/signup', endpoint='signup')
+api.add_resource(Login, '/login', endpoint='login')
+api.add_resource(Logout, '/logout', endpoint='logout')
+api.add_resource(Charities, "/charities", "/charities/<int:charity_id>")
+api.add_resource(Users, '/users', endpoint='users')
 if __name__ == "__main__":
     db.create_all()
     app.run(debug=True)
