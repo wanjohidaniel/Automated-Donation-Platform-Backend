@@ -209,7 +209,7 @@ class CheckSession(Resource):
             return user.to_dict(), 200
         return {}, 401
 
-api.add_resource(CharityTotalDonations, '/charities/<int:id>') 
+api.add_resource(CharityTotalDonations, '/charities/<int:id>/total_donations') 
 api.add_resource(AdminDecision, '/charities/<int:id>') 
 api.add_resource(Donation, '/donations')
 api.add_resource(CheckSession, '/check_session', endpoint='check_session')     
