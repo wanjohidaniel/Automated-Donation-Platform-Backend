@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from sqlalchemy.exc import IntegrityError
 from flask_bcrypt import Bcrypt
 
-from models import db, Charity, User
+from models import db, Charity, User, Donation
 
 
 app = Flask(__name__)
@@ -14,8 +14,8 @@ api = Api(app)
 bcrypt = Bcrypt(app)
 
 
-os.environ["DB_EXTERNAL_URL"] = "postgresql://backend_1fsr_user:5Ipy3vtPoazu0UtLmACn4Bo166WjWwCs@dpg-cqjrrotds78s73f486bg-a.oregon-postgres.render.com/p3_db"
-os.environ["DB_INTERNAL_URL"] = "postgresql://backend_1fsr_user:5Ipy3vtPoazu0UtLmACn4Bo166WjWwCs@dpg-cqjrrotds78s73f486bg-a/p3_db"
+os.environ["DB_EXTERNAL_URL"] = "postgresql://backend_1fsr_user:5Ipy3vtPoazu0UtLmACn4Bo166WjWwCs@dpg-cqjrrotds78s73f486bg-a.oregon-postgres.render.com/p4_db"
+os.environ["DB_INTERNAL_URL"] = "postgresql://backend_1fsr_user:5Ipy3vtPoazu0UtLmACn4Bo166WjWwCs@dpg-cqjrrotds78s73f486bg-a/p4_db"
 # Configure SQLAlchemy database URI based on environment variables
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -30,12 +30,6 @@ app.json.compact = False
 migrate = Migrate(app, db)
 db.init_app(app)
 
-app = Flask(
-    __name__,
-    static_url_path='',
-    static_folder='../client/build',
-    template_folder='../client/build'
-)
 
 class Charities(Resource):
     def get(self, id=None):
