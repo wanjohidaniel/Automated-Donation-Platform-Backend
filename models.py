@@ -14,15 +14,17 @@ db = SQLAlchemy()
 class Charity(db.Model, SerializerMixin):
     tablename = 'charities'
 
+    serialize_only = ("id", "name", "image", "description", "mission_statement", "impact", "goals", "status")
     serialize_rules = ("-users", "-donations")
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
+    image = db.Column(db.String)
     description = db.Column(db.String)
     mission_statement = db.Column(db.String)
     goals = db.Column(db.String(120), nullable=False, default='')
     impact = db.Column(db.String(120), nullable=False)
-    status = Column(String(255))
+    status = db.Column(db.String, default="pending")
     
     # Donations received by this charity
     donations = db.relationship('Donation', back_populates='charity')
@@ -56,7 +58,7 @@ class Charity(db.Model, SerializerMixin):
         db.session.commit()
 
     def repr(self):
-        return f'<Charity {self.name} | Description: {self.description} | Mission Statement: {self.mission_statement}| goals: {self.goals} | impact: {self.impact} | status: {self.status}>'
+        return f'<Charity {self.name} | Image: {self.image}  | Description: {self.description} | Mission Statement: {self.mission_statement}| goals: {self.goals} | impact: {self.impact} | status: {self.status}>'
 
 
 # User Model
@@ -64,7 +66,7 @@ class User(db.Model, SerializerMixin):
     tablename = 'users'
 
     # Serialization rules
-    serialize_only = ("id", "username", "email")
+    serialize_only = ("id", "username", "email", "role")
     serialize_rules = ("-charities",'-donations','-_password_hash')
 
     # Define columns
@@ -72,7 +74,7 @@ class User(db.Model, SerializerMixin):
     username = db.Column(String(80), nullable=False, unique=True)
     email = db.Column(String(120), nullable=False, unique=True)
     _password_hash = db.Column(db.String)
-
+    role = db.Column(db.String, default="donor")
 
     @hybrid_property
     def password_hash(self):
@@ -96,6 +98,17 @@ class User(db.Model, SerializerMixin):
 
     donations = db.relationship('Donation', back_populates='user')
 
+     # Define a method to return donations sum
+    @property
+    def totalDonations(self):
+         # your code goes here
+        total = sum(donation.amount for donation in self.donations)
+        return total
+    @property
+    def donationsHistory(self):
+        donations = [{donation.date_time_created, donation.amount, donation.charity.name} for donation in self.donations]
+        return donations
+    
     def repr(self):
         return f'User {self.username} is created successfully'
 

@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify, make_response, session
 from flask_restful import Resource, Api
 from flask_migrate import Migrate
 from sqlalchemy.exc import IntegrityError
+from flask_cors import CORS, cross_origin
 from flask_bcrypt import Bcrypt
 
 from models import db, Charity, User, Donation
@@ -12,7 +13,8 @@ app = Flask(__name__)
 api = Api(app)
 
 bcrypt = Bcrypt(app)
-
+CORS(app, resources={r"/api/*": {"origins": "*"}})
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 os.environ["DB_EXTERNAL_URL"] = "postgresql://backend_1fsr_user:5Ipy3vtPoazu0UtLmACn4Bo166WjWwCs@dpg-cqjrrotds78s73f486bg-a.oregon-postgres.render.com/p4_db"
 os.environ["DB_INTERNAL_URL"] = "postgresql://backend_1fsr_user:5Ipy3vtPoazu0UtLmACn4Bo166WjWwCs@dpg-cqjrrotds78s73f486bg-a/p4_db"
@@ -24,6 +26,9 @@ if os.getenv('FLASK_ENV') == 'production':
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_INTERNAL_URL")
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_EXTERNAL_URL")
+
+# Set the Flask app secret key from environment variable
+app.config["SECRET_KEY"] = "group6Project"
     
 app.json.compact = False
 
@@ -34,7 +39,7 @@ db.init_app(app)
 class Charities(Resource):
     def get(self, id=None):
         if id is None:
-            charities = [charity.to_dict() for charity in Charity.query.filter_by(status='approved').all()]
+            charities = [charity.to_dict() for charity in Charity.query.all()]
             response = make_response(jsonify(charities), 200)
             return response
         else:
@@ -64,18 +69,25 @@ class Charities(Resource):
             
     #add a new charity
     def post(self):
+        
         data = request.get_json()
-        new_charity = Charity(
-            name=data['name'],
-            description=data.get('description'),
-            mission_statement = data.get('mission_statement'),
-            goals = data.get('goals'),
-            impact = data.get('impact')
-            )
-        new_charity.status = 'pending'
-        db.session.add(new_charity)
+        
+        name=data.get('name'),
+        description=data.get('description'),
+        mission_statement = data.get('mission_statement'),
+        goals = data.get('goals'),
+        impact = data.get('impact'),
+        image = data.get('image')
+        
+        if not all([name, image, description, impact, goals, mission_statement]):
+            return {'error': '422 Unprocessable Entity'}, 422
+        charity = Charity(name=name, image=image, description=description, impact=impact, goals=goals, mission_statement=mission_statement)
+        
+        charity.status = "pending"
+        db.session.add(charity)
         db.session.commit()
-        return jsonify(new_charity.to_dict()), 201
+        return charity.to_dict(), 201
+    
     def put(self, id):
         data = request.get_json()
         charity = Charity.query.get(id)
@@ -117,28 +129,49 @@ class CharityTotalDonations(Resource):
         # Return the total donations as a JSON response
         return jsonify({"total_donations": total_donations})
 
+#fetch total donation for a charity
+class UserTotalDonations(Resource):
+    def get(self, id):
+        # Get the user by its id
+        user = User.query.filter_by(id=id).first()
+
+        # Get the total donations for the charity
+        total_donations = user.totalDonations
+
+        # Return the total donations as a JSON response
+        return jsonify({"total_donations": total_donations})
+
+class UserDonationHistory(Resource):
+    def get(self, id):
+        # Get the user by his id
+        user = User.query.filter_by(id=id).first()
+        #get donations history
+        donations = user.donationsHistory
+        #return donations as a json response
+        return jsonify({'donation history': donations})
+
+
           
  #allow an admin to decide
+class Approve(Resource):
     def post(self, id):
-        if request.path.endswith('/review'):
-            # Review the charity
-            charity = Charity.query.get(id)
-            charity.review()
-            db.session.commit()
-            return make_response(charity.to_dict(), 200)
-        elif request.path.endswith('/approve'):
-            # Approve the charity
-            charity = Charity.query.get(id)
-            charity.approve()
-            db.session.commit()
-            return make_response(charity.to_dict(), 200)
-        elif request.path.endswith('/reject'):
-            # Reject the charity
-            charity = Charity.query.get(id)
-            charity.reject()
-            db.session.commit()
-            return make_response(charity.to_dict(), 200)
-
+        # Approve the charity
+        charity = Charity.query.get(id)
+        charity.approve()
+        db.session.commit()
+        return make_response(charity.to_dict(), 200)
+class Reject(Resource):
+    def post(self, id):
+        charity = Charity.query.get(id)
+        charity.reject()
+        db.session.commit()
+        return make_response(charity.to_dict(), 200)
+class Review(Resource):
+    def post(self, id):
+        # Review the charity
+        charity = Charity.query.get(id)
+        charity.review()
+        db.session.commit()
   
 #api to create a donation
 class Donation(Resource):
@@ -169,16 +202,18 @@ class Login(Resource):
         return {'error': '401 Unauthorized'}, 401
 
 class Signup(Resource):
+    @cross_origin()
     def post(self):
         data = request.get_json()
-        username = data.get('username')
+        username = data.get('userName')
         password = data.get('password')
         email = data.get('email')
-        if not all([username, email, password]):
+        role = data.get('role')
+        if not all([username, email, password, role]):
             return {'error': '422 Unprocessable Entity'}, 422
-        user = User(username=username, email=email)
+        user = User(username=username, email=email, role=role)
         
-         # the setter will encrypt this
+         # the password setter will encrypt this
         user.password_hash = password
 
         try:
@@ -218,7 +253,11 @@ api.add_resource(Login, '/login', endpoint='login')
 api.add_resource(Logout, '/logout', endpoint='logout')
 api.add_resource(Charities, "/charities", "/charities/<int:id>")
 api.add_resource(Users, '/users', '/users/<int:id>')
+api.add_resource(UserDonationHistory, '/users/<int:id>/donations') 
+api.add_resource(Approve, '/approve/<int:id>')
+api.add_resource(Review, '/review/<int:id>')
+api.add_resource(Reject, "/ reject/<int:id>" )
 
 if __name__ == "__main__":
     db.create_all()
-    app.run(debug=True)
+    app.run(port=5000, debug=True)

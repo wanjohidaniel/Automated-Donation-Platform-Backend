@@ -14,6 +14,9 @@ with app.app_context():
     demo = User(username='demo', email='demo@example.com')
     demo.password_hash = 'password'
 
+    Admin = User(username='Admin', email='Admin@example.com', role='admin')
+    Admin.password_hash = 'password'
+
     john = User(username='john', email='john@example.com')
     john.password_hash = 'password'
 
@@ -28,13 +31,20 @@ with app.app_context():
 
     print('Creating Charity objects...')
     Charities=[
-        Charity(name="Charity 1", description="This is charity 1.", mission_statement="To help people in need.", goals=[], impact='hahsgddysgwhw', status="approved"),
-        Charity(name="Charity 2", description="This is charity 2.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="approved"),
-        Charity(name="Charity 3", description="This is charity 3.", mission_statement="To provide shelter to the homeless.", goals=[], impact='hahsgddysgwhw', status="approved")
+        Charity(name="Save the Children", image="https://images.unsplash.com/photo-1504384308090-c894fdcc538d", description="Save the Children provides education and emergency aid to children in need around the world, including school-going girls in Sub-Saharan Africa.", mission_statement="To help bring out the best in all children.", goals=[], impact='hahsgddysgwhw', status="pending"),
+        Charity(name="Plan International", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="pending"),
+        Charity(name="Plan International", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="pending"),
+        Charity(name="Plan International", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="pending"),
+        Charity(name="Plan International", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="pending"),
+        Charity(name="Plan International", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="pending"),
+        Charity(name="Plan International test1", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International test1 focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="pending"),
+        Charity(name="Plan International test2", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International test2 focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="pending"),
+        Charity(name="Plan International test3", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International test3 focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="pending"),
+        Charity(name="Girls Not Brides", image = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnNoMNAJXsi-Z1GFofWGkl0OUu_mwdfIdUwQ&s', description="TGirls Not Brides is dedicated to ending child marriage and supporting girls' education in Sub-Saharan Africa through advocacy and direct support.", mission_statement="To provide shelter to the homeless.", goals=[], impact='hahsgddysgwhw', status="pending")
     ]
     # Add sample users
     db.session.add_all(Charities)
-    db.session.add_all([demo, john, alexy])
+    db.session.add_all([demo, Admin, john, alexy])
 
 
     
