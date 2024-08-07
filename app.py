@@ -16,8 +16,9 @@ bcrypt = Bcrypt(app)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-os.environ["DB_EXTERNAL_URL"] = "postgresql://backend_1fsr_user:5Ipy3vtPoazu0UtLmACn4Bo166WjWwCs@dpg-cqjrrotds78s73f486bg-a.oregon-postgres.render.com/p4_db"
-os.environ["DB_INTERNAL_URL"] = "postgresql://backend_1fsr_user:5Ipy3vtPoazu0UtLmACn4Bo166WjWwCs@dpg-cqjrrotds78s73f486bg-a/p4_db"
+os.environ["DB_EXTERNAL_URL"] = "postgresql://postgresql_w2pt_user:C2Vgxw8OmTgcpWPC3VHnG8qYPpOWwnVW@dpg-cqpsak56l47c73ajpk3g-a.oregon-postgres.render.com/charities_donations_db"
+os.environ["DB_INTERNAL_URL"] = "postgresql://postgresql_w2pt_user:C2Vgxw8OmTgcpWPC3VHnG8qYPpOWwnVW@dpg-cqpsak56l47c73ajpk3g-a/charities_donations_db"
+
 # Configure SQLAlchemy database URI based on environment variables
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -59,14 +60,7 @@ class Charities(Resource):
 
         return make_response(charity.to_dict(), 200)
 
-    #delete a charity
-    def delete(self, id):
-        charity = Charity.query.filter_by(id=id).first()
-        db.session.delete(charity)
-        db.session.commit()
-
-        return make_response('', 204)
-            
+   
     #add a new charity
     def post(self):
         
@@ -100,14 +94,7 @@ class Charities(Resource):
             db.session.commit()
             return {"id": charity.id, "name": charity.name, "description": charity.description}
 
-    def delete(self, id):
-        charity = Charity.query.get(id)
-        if charity is None:
-            return {"error": "charity not found"}, 404
-        else:
-            db.session.delete(charity)
-            db.session.commit()
-            return {"result": "success"}
+    
         
 class AdminDecision(Resource):
 
@@ -118,7 +105,7 @@ class AdminDecision(Resource):
             response = make_response(jsonify(charities), 200)
             return response
 #fetch total donation for a charity
-class CharityTotalDonations(Resource):
+class Total(Resource):
     def get(self, id):
         # Get the charity by its id
         charity = Charity.query.filter_by(id=id).first()
@@ -153,6 +140,14 @@ class UserDonationHistory(Resource):
 
           
  #allow an admin to decide
+class Delete(Resource):
+    def delete_charity_by_id(self, id):
+        charity = Charity.query.get(id)
+        if charity:
+            db.session.delete(charity)
+            db.session.commit()
+            return True
+        return False
 class Approve(Resource):
     def post(self, id):
         # Approve the charity
@@ -182,7 +177,6 @@ class Donation(Resource):
         db.session.commit()
         return jsonify({'id': donation.id, 'amount': donation.amount, 'donor_id': donation.donor_id, 'charity_id': donation.charity_id})
 
-
 class Login(Resource):
    def post(self):
 
@@ -202,7 +196,7 @@ class Login(Resource):
         return {'error': '401 Unauthorized'}, 401
 
 class Signup(Resource):
-    @cross_origin()
+    
     def post(self):
         data = request.get_json()
         username = data.get('userName')
@@ -244,20 +238,21 @@ class CheckSession(Resource):
             return user.to_dict(), 200
         return {}, 401
 
-api.add_resource(CharityTotalDonations, '/charities/<int:id>/total_donations') 
+api.add_resource(Total, '/total/<int:id>') 
 api.add_resource(AdminDecision, '/charities/<int:id>') 
 api.add_resource(Donation, '/donations')
 api.add_resource(CheckSession, '/check_session', endpoint='check_session')     
 api.add_resource(Signup, '/signup', endpoint='signup')
 api.add_resource(Login, '/login', endpoint='login')
 api.add_resource(Logout, '/logout', endpoint='logout')
-api.add_resource(Charities, "/charities", "/charities/<int:id>")
+api.add_resource(Charities, "/charities")
 api.add_resource(Users, '/users', '/users/<int:id>')
-api.add_resource(UserDonationHistory, '/users/<int:id>/donations') 
+api.add_resource(UserDonationHistory, '/donations/<int:id>') 
 api.add_resource(Approve, '/approve/<int:id>')
 api.add_resource(Review, '/review/<int:id>')
-api.add_resource(Reject, "/ reject/<int:id>" )
+api.add_resource(Reject, '/reject/<int:id>')
+api.add_resource(Delete, '/delete/<int:id>')
 
 if __name__ == "__main__":
     db.create_all()
-    app.run(port=5000, debug=True)
+    app.run(debug=True, port=5000)
