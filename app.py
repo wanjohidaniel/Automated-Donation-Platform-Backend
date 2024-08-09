@@ -36,16 +36,17 @@ app.json.compact = False
 migrate = Migrate(app, db)
 db.init_app(app)
 
+class CharityById(Resource):
+    def get(self, id):
+        # Get the charity by its id
+        charity = Charity.query.filter_by(id=id).first()
+        print(charity)
+        return(make_response(jsonify(charity.to_dict())))
 
 class Charities(Resource):
-    def get(self, id=None):
-        if id is None:
-            charities = [charity.to_dict() for charity in Charity.query.all()]
-            response = make_response(jsonify(charities), 200)
-            return response
-        else:
-            charity = Charity.query.filter_by(id=id).first().to_dict()
-        return make_response(jsonify(charity), 200)
+    def get(self):
+            charities = Charity.query.all()
+            return [charity.to_dict() for charity in charities], 200
     #update a charity
     def patch(self, id):
         data = request.get_json()
@@ -141,7 +142,7 @@ class UserDonationHistory(Resource):
           
  #allow an admin to decide
 class Delete(Resource):
-    def delete_charity_by_id(self, id):
+    def delete(self, id):
         charity = Charity.query.get(id)
         if charity:
             db.session.delete(charity)
@@ -239,13 +240,14 @@ class CheckSession(Resource):
         return {}, 401
 
 api.add_resource(Total, '/total/<int:id>') 
-api.add_resource(AdminDecision, '/charities/<int:id>') 
+
 api.add_resource(Donation, '/donations')
 api.add_resource(CheckSession, '/check_session', endpoint='check_session')     
 api.add_resource(Signup, '/signup', endpoint='signup')
 api.add_resource(Login, '/login', endpoint='login')
 api.add_resource(Logout, '/logout', endpoint='logout')
 api.add_resource(Charities, "/charities")
+api.add_resource(CharityById, "/charities/<int:id>")
 api.add_resource(Users, '/users', '/users/<int:id>')
 api.add_resource(UserDonationHistory, '/donations/<int:id>') 
 api.add_resource(Approve, '/approve/<int:id>')
