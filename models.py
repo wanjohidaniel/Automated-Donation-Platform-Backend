@@ -6,6 +6,7 @@ from datetime import datetime
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from config import bcrypt
+import json
 
 db = SQLAlchemy()
 
@@ -103,16 +104,37 @@ class User(db.Model, SerializerMixin):
 
     donations = db.relationship('Donation', back_populates='user')
 
-     # Define a method to return donations sum
-    @property
     def totalDonations(self):
-         # your code goes here
         total = sum(donation.amount for donation in self.donations)
         return total
-    @property
-    def donationsHistory(self):
-        donations = [{donation.date_time_created, donation.amount, donation.charity.name} for donation in self.donations]
-        return donations
+    def get_all_donations_as_json(self):
+        # Retrieve all donations related to the user
+        donations = self.donations
+
+        # Serialize donations into a dictionary
+        donations_dict_list = []
+        for donation in donations:
+            donation_dict = {
+                "id": donation.id,
+                "amount": donation.amount,
+                "date_time_created": donation.date_time_created.strftime('%Y-%m-%d'),
+                "charity_name": donation.charity.name# Add more fields as needed
+            }
+            donations_dict_list.append(donation_dict)
+
+        # Convert the list of donation dictionaries to JSON
+        donations_json = json.dumps(donations_dict_list, indent=2)
+        
+        return donations_json
+    
+    def to_dict(self):
+        user_dict = super().to_dict()
+        user_dict['donations'] = self.get_all_donations_as_json()
+        user_dict['totalDonatedAmount'] = self.totalDonations()
+        return user_dict
+
+   
+    
     
     def repr(self):
         return f'User {self.username} is created successfully'
@@ -123,6 +145,10 @@ class User(db.Model, SerializerMixin):
 class Donation(db.Model, SerializerMixin):
     tablename = 'donations'
     id = db.Column(db.Integer, primary_key=True)
+
+    # Serialization rules
+    serialize_only = ("id", "amount", "date_time_created", "charity_id", "user_id")
+    serialize_rules = ("-users",'-charities')
     
     amount = db.Column(db.Float, nullable=False)
      # Date and time when the donation was created

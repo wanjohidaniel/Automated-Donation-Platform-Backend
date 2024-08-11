@@ -43,7 +43,13 @@ class CharityById(Resource):
             return make_response(jsonify(charity.to_dict()))
         else:
             return make_response(jsonify({"error": "Charity not found"}), 404)
-
+class UserById(Resource):
+    def get(self, id):
+        user = User.query.filter_by(id=id).first()
+        if user:
+            return make_response(jsonify(user.to_dict()))
+        else:
+            return make_response(jsonify({"error": "user not found"}), 404)
 class Charities(Resource):
     def get(self):
             charities = Charity.query.all()
@@ -174,7 +180,7 @@ class Review(Resource):
 class Donation(Resource):
     def post(self):
         data = request.get_json()
-        donation = Donation(amount=data['amount'], donor_id=data['donor_id'], charity_id=data['charity_id'])
+        donation = Donation(amount=data['amount'], user_id=data['user_id'], charity_id=data['charity_id'])
         db.session.add(donation)
         db.session.commit()
         return jsonify({'id': donation.id, 'amount': donation.amount, 'donor_id': donation.donor_id, 'charity_id': donation.charity_id})
@@ -249,7 +255,8 @@ api.add_resource(Login, '/login', endpoint='login')
 api.add_resource(Logout, '/logout', endpoint='logout')
 api.add_resource(Charities, "/charities")
 api.add_resource(CharityById, "/charities/<int:id>")
-api.add_resource(Users, '/users', '/users/<int:id>')
+api.add_resource(UserById, "/users/<int:id>")
+api.add_resource(Users, '/users')
 api.add_resource(UserDonationHistory, '/donations/<int:id>') 
 api.add_resource(Approve, '/approve/<int:id>')
 api.add_resource(Review, '/review/<int:id>')
