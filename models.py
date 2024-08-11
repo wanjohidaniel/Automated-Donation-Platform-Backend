@@ -29,13 +29,18 @@ class Charity(db.Model, SerializerMixin):
     # Donations received by this charity
     donations = db.relationship('Donation', back_populates='charity')
 
-    # Define a method to return donations sum
-    @property
     def totalDonations(self):
-         # your code goes here
         total = sum(donation.amount for donation in self.donations)
         return total
 
+    def getDonations(self):
+        return [donation.to_dict() for donation in self.donations]  # Ensure donations are returned as a list of dictionaries
+
+    def to_dict(self):
+        charity_dict = super().to_dict()
+        charity_dict['donations'] = self.getDonations()
+        charity_dict['totalDonatedAmount'] = self.totalDonations()
+        return charity_dict
     
     #change the status of a charity request to reviewed
     def review(self):

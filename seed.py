@@ -40,7 +40,9 @@ with app.app_context():
         Charity(name="Plan International test1", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International test1 focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="approved"),
         Charity(name="Plan International test2", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International test2 focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="approved"),
         Charity(name="Plan International test3", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International test3 focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="approved"),
-        Charity(name="Girls Not Brides", image = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnNoMNAJXsi-Z1GFofWGkl0OUu_mwdfIdUwQ&s', description="TGirls Not Brides is dedicated to ending child marriage and supporting girls' education in Sub-Saharan Africa through advocacy and direct support.", mission_statement="To provide shelter to the homeless.", goals=[], impact='hahsgddysgwhw', status="pending")
+        Charity(name="Girls Not Brides", image = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnNoMNAJXsi-Z1GFofWGkl0OUu_mwdfIdUwQ&s', description="TGirls Not Brides is dedicated to ending child marriage and supporting girls' education in Sub-Saharan Africa through advocacy and direct support.", mission_statement="To provide shelter to the homeless.", goals=[], impact='hahsgddysgwhw', status="pending"),
+        Charity(name="jofo", image = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnNoMNAJXsi-Z1GFofWGkl0OUu_mwdfIdUwQ&s', description="TGirls Not Brides is dedicated to ending child marriage and supporting girls' education in Sub-Saharan Africa through advocacy and direct support.", mission_statement="To provide shelter to the homeless.", goals=[], impact='hahsgddysgwhw', status="pending"),
+        Charity(name="sick", image = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnNoMNAJXsi-Z1GFofWGkl0OUu_mwdfIdUwQ&s', description="TGirls Not Brides is dedicated to ending child marriage and supporting girls' education in Sub-Saharan Africa through advocacy and direct support.", mission_statement="To provide shelter to the homeless.", goals=[], impact='hahsgddysgwhw', status="pending"),
     ]
     # Add sample users
     db.session.add_all(Charities)
@@ -53,8 +55,22 @@ with app.app_context():
     print("Creating donations....")
     donations = [
         Donation(amount=100.00, user=alexy, charity=Charities[1]),
-        Donation(amount=200.00, user=john, charity=Charities[0]),
+        Donation(amount=200.00, user=john, charity=Charities[2]),
+        Donation(amount=300.00, user=demo, charity=Charities[3]),
+        Donation(amount=300.00, user=john, charity=Charities[4]),
+        Donation(amount=300.00, user=demo, charity=Charities[5]),
+        Donation(amount=300.00, user=demo, charity=Charities[6]),
+        Donation(amount=300.00, user=demo, charity=Charities[7]),
+        Donation(amount=300.00, user=demo, charity=Charities[8]),
+        Donation(amount=300.00, user=demo, charity=Charities[9]),
+        Donation(amount=300.00, user=demo, charity=Charities[0]),
         Donation(amount=300.00, user=demo, charity=Charities[2]),
+        Donation(amount=300.00, user=demo, charity=Charities[2]),
+        Donation(amount=300.00, user=demo, charity=Charities[2]),
+
+        
+        
+
     ]
 
     print("Adding donations, charities and users to transaction...")

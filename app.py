@@ -38,10 +38,11 @@ db.init_app(app)
 
 class CharityById(Resource):
     def get(self, id):
-        # Get the charity by its id
         charity = Charity.query.filter_by(id=id).first()
-        print(charity)
-        return(make_response(jsonify(charity.to_dict())))
+        if charity:
+            return make_response(jsonify(charity.to_dict()))
+        else:
+            return make_response(jsonify({"error": "Charity not found"}), 404)
 
 class Charities(Resource):
     def get(self):
