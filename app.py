@@ -16,8 +16,8 @@ bcrypt = Bcrypt(app)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-os.environ["DB_EXTERNAL_URL"] = "postgresql://postgresql_w2pt_user:C2Vgxw8OmTgcpWPC3VHnG8qYPpOWwnVW@dpg-cqpsak56l47c73ajpk3g-a.oregon-postgres.render.com/charities_donations_db"
-os.environ["DB_INTERNAL_URL"] = "postgresql://postgresql_w2pt_user:C2Vgxw8OmTgcpWPC3VHnG8qYPpOWwnVW@dpg-cqpsak56l47c73ajpk3g-a/charities_donations_db"
+os.environ["DB_EXTERNAL_URL"] = "postgresql://postgresql_w2pt_user:C2Vgxw8OmTgcpWPC3VHnG8qYPpOWwnVW@dpg-cqpsak56l47c73ajpk3g-a.oregon-postgres.render.com/charities_donations_db2"
+os.environ["DB_INTERNAL_URL"] = "postgresql://postgresql_w2pt_user:C2Vgxw8OmTgcpWPC3VHnG8qYPpOWwnVW@dpg-cqpsak56l47c73ajpk3g-a/charities_donations_db2"
 
 # Configure SQLAlchemy database URI based on environment variables
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
