@@ -154,7 +154,7 @@ class Donation(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
 
     # Serialization rules
-    serialize_only = ("id", "amount", "date_time_created", "user_id", "charity_id", "anonymous")
+    serialize_only = ("id", "amount", "date_time_created", "user_id", "charity_id")
     serialize_rules = ("-users",'-charities')
     
     amount = db.Column(db.Float, nullable=False)

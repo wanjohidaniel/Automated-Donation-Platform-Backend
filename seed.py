@@ -5,8 +5,11 @@ from datetime import datetime
 
 
 with app.app_context():
-    print("Deleting existing donations....")
+    print("Deleting existing donations,reminders, recurring doantions and stories....")
     Donation.query.delete()
+    Reminder.query.delete()
+    RecurringDonation.query.delete()
+    Story.query.delete()
     
     print("Deleting existing users....")
     User.query.delete()
@@ -99,10 +102,7 @@ with app.app_context():
     db.session.add_all(reminders)
     db.session.add_all(stories)
     
-    print('Committing transaction...')
-    db.session.commit()
 
-    print('Complete.')
     
     db.session.add_all(donations)
    
