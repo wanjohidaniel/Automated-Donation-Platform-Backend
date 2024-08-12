@@ -1,6 +1,7 @@
 from app import app
-from models import db, Charity, User, Donation
+from models import db, Charity, User, Donation, Story, RecurringDonation, Reminder
 from flask_bcrypt import Bcrypt
+from datetime import datetime
 
 
 with app.app_context():
@@ -74,7 +75,34 @@ with app.app_context():
     ]
 
     print("Adding donations, charities and users to transaction...")
+    #print("Creating recurring donations....")
+    recurring_donations = [
+        RecurringDonation(amount=50.00, user=alexy, charity=Charities[1], frequency='monthly', start_date=datetime.utcnow(), next_donation_date=datetime.utcnow()),
+        RecurringDonation(amount=75.00, user=john, charity=Charities[0], frequency='monthly', start_date=datetime.utcnow(), next_donation_date=datetime.utcnow())
+    ]
     
+    print("Creating reminders....")
+    reminders = [
+        Reminder(message="Don't forget to donate this month!", user=alexy, remind_at=datetime.utcnow()),
+        Reminder(message="Monthly donation reminder", user=john, remind_at=datetime.utcnow())
+    ]
+
+    print("Creating stories....")
+    stories = [
+        Story(title="Success Story from Save the Children", content="Thanks to Save the Children, many girls in Sub-Saharan Africa have gained access to education and health services.", charity=Charities[0], image_url="https://example.com/image1.jpg"),
+        Story(title="Impact of Plan International", content="Plan International's initiatives have transformed the lives of many girls, providing them with opportunities for a brighter future.", charity=Charities[1], image_url="https://example.com/image2.jpg")
+    ]
+
+    print("Adding donations, recurring donations, reminders, stories, charities, and users to transaction...")
+    db.session.add_all(donations)
+    db.session.add_all(recurring_donations)
+    db.session.add_all(reminders)
+    db.session.add_all(stories)
+    
+    print('Committing transaction...')
+    db.session.commit()
+
+    print('Complete.')
     
     db.session.add_all(donations)
    

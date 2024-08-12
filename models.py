@@ -28,7 +28,7 @@ class Charity(db.Model, SerializerMixin):
     status = db.Column(db.String, default="pending")
     
     # Donations received by this charity
-    donations = db.relationship('Donation', back_populates='charity')
+    #donations = db.relationship('Donation', back_populates='charity')
 
     def totalDonations(self):
         total = sum(donation.amount for donation in self.donations)
@@ -62,7 +62,9 @@ class Charity(db.Model, SerializerMixin):
     def pending(self):
         self.status = 'pending'
         db.session.commit()
-
+    donations = db.relationship('Donation', back_populates='charity', cascade="all, delete-orphan")
+    stories = db.relationship('Story', back_populates='charity', cascade="all, delete-orphan")
+    recurring_donations = db.relationship('RecurringDonation', back_populates='charity', cascade="all, delete-orphan")
     def repr(self):
         return f'<Charity {self.name} | Image: {self.image}  | Description: {self.description} | Mission Statement: {self.mission_statement}| goals: {self.goals} | impact: {self.impact} | status: {self.status}>'
 
@@ -102,7 +104,7 @@ class User(db.Model, SerializerMixin):
     """  # Relationship with charities
     charities = db.relationship("Charity", secondary="donations", backref="users") """
 
-    donations = db.relationship('Donation', back_populates='user')
+    # donations = db.relationship('Donation', back_populates='user')
 
     def totalDonations(self):
         total = sum(donation.amount for donation in self.donations)
@@ -134,8 +136,13 @@ class User(db.Model, SerializerMixin):
         return user_dict
 
    
-    
-    
+    donations = db.relationship('Donation', back_populates='user', cascade="all, delete-orphan")
+    recurring_donations = db.relationship('RecurringDonation', back_populates='user', cascade="all, delete-orphan")
+    reminders = db.relationship('Reminder', back_populates='user', cascade="all, delete-orphan")
+    @property
+    def donationsHistory(self):
+        donations = [{'amount': donation.amount, 'date_time_created': donation.date_time_created, 'charity_name': donation.charity.name} for donation in self.donations]
+        return donations
     def repr(self):
         return f'User {self.username} is created successfully'
 
@@ -147,7 +154,7 @@ class Donation(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
 
     # Serialization rules
-    serialize_only = ("id", "amount", "date_time_created", "charity_id", "user_id")
+    serialize_only = ("id", "amount", "date_time_created", "user_id", "charity_id", "anonymous")
     serialize_rules = ("-users",'-charities')
     
     amount = db.Column(db.Float, nullable=False)
@@ -168,3 +175,58 @@ class Donation(db.Model, SerializerMixin):
     
     def repr(self):
         return '<Donation %r>' % self.id
+    
+class RecurringDonation(db.Model, SerializerMixin):
+    _tablename_ = 'recurring_donations'
+
+    serialize_only = ("id", "amount", "user_id", "charity_id", "frequency", "start_date", "next_donation_date")
+    serialize_rules = ("-user", "-charity")
+
+    id = db.Column(db.Integer, primary_key=True)
+    amount = db.Column(db.Float, nullable=False)
+    user_id = db.Column(db.Integer(), db.ForeignKey('user.id'), nullable=False)
+    charity_id = db.Column(db.Integer(), db.ForeignKey('charity.id'), nullable=False)
+    frequency = db.Column(db.String(50), nullable=False)  # e.g., 'monthly', 'yearly'
+    start_date = db.Column(db.DateTime, nullable=False)
+    next_donation_date = db.Column(db.DateTime, nullable=False)
+
+    user = db.relationship('User', back_populates='recurring_donations')
+    charity = db.relationship('Charity', back_populates='recurring_donations')
+
+    def _repr_(self):
+        return f'<RecurringDonation {self.id}>'
+
+class Reminder(db.Model, SerializerMixin):
+    _tablename_ = 'reminders'
+
+    serialize_only = ("id", "message", "user_id", "remind_at")
+    serialize_rules = ("-user",)
+
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.String(255), nullable=False)
+    user_id = db.Column(db.Integer(), db.ForeignKey('user.id'), nullable=False)
+    
+    remind_at = db.Column(db.DateTime, nullable=False)
+
+    user = db.relationship('User', back_populates='reminders')
+
+    def _repr_(self):
+        return f'<Reminder {self.id}>'
+
+class Story(db.Model, SerializerMixin):
+    _tablename_ = 'stories'
+
+    serialize_only = ("id", "title", "content", "charity_id", "image_url")
+    serialize_rules = ("-charity",)
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    
+    charity_id = db.Column(db.Integer(), db.ForeignKey('charity.id'), nullable=False)
+    image_url = db.Column(db.String(255), nullable=True)
+
+    charity = db.relationship('Charity', back_populates='stories')
+
+    def _repr_(self):
+        return f'<Story {self.title}>'

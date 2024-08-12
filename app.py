@@ -5,6 +5,9 @@ from flask_migrate import Migrate
 from sqlalchemy.exc import IntegrityError
 from flask_cors import CORS, cross_origin
 from flask_bcrypt import Bcrypt
+import paypalrestsdk
+import stripe
+from datetime import datetime
 
 from models import db, Charity, User, Donation
 
@@ -35,6 +38,17 @@ app.json.compact = False
 
 migrate = Migrate(app, db)
 db.init_app(app)
+
+# PayPal SDK configuration
+paypalrestsdk.configure({
+    "mode": "sandbox",  # Change to "live" for production
+    "client_id": "sk_test_51PmjikRu6PCl2qiPx5Pr8yKaJzFfVgaHnfsi3mnHL7twXepIMX0GbN54MMqKcdJvG9IqgkfGRRLQJdVkZDgqQGJh00O9U0KPba",
+    "client_secret": "sk_test_51PmjikRu6PCl2qiPx5Pr8yKaJzFfVgaHnfsi3mnHL7twXepIMX0GbN54MMqKcdJvG9IqgkfGRRLQJdVkZDgqQGJh00O9U0KPba"
+})
+
+# Stripe SDK configuration
+stripe.api_key = "sk_test_51PmjikRu6PCl2qiPx5Pr8yKaJzFfVgaHnfsi3mnHL7twXepIMX0GbN54MMqKcdJvG9IqgkfGRRLQJdVkZDgqQGJh00O9U0KPba"
+
 
 class CharityById(Resource):
     def get(self, id):
@@ -245,6 +259,79 @@ class CheckSession(Resource):
             user = User.query.filter(User.id == user_id).first()
             return user.to_dict(), 200
         return {}, 401
+class PayPalPayment(Resource):
+    def post(self):
+        data = request.get_json()
+        amount = data.get('amount')
+        charity_id = data.get('charity_id')
+        
+        payment = paypalrestsdk.Payment({
+            "intent": "sale",
+            "payer": {
+                "payment_method": "paypal"
+            },
+            "redirect_urls": {
+                "return_url": "http://localhost:5000/paypal-return",
+                "cancel_url": "http://localhost:5000/paypal-cancel"
+            },
+            "transactions": [{
+                "amount": {
+                    "total": amount,
+                    "currency": "USD"
+                },
+                "description": "Donation to charity ID {}".format(charity_id)
+            }]
+        })
+
+        if payment.create():
+            return jsonify({"payment_id": payment.id, "approval_url": payment.links[1].href})
+        else:
+            return jsonify({"error": payment.error}), 500
+
+
+class PayPalReturn(Resource):
+    def get(self):
+        payment_id = request.args.get('paymentId')
+        payer_id = request.args.get('PayerID')
+        payment = paypalrestsdk.Payment.find(payment_id)
+        if payment.execute({"payer_id": payer_id}):
+            return jsonify({"message": "Payment completed successfully"})
+        else:
+            return jsonify({"error": payment.error}), 500
+
+
+class PayPalCancel(Resource):
+    def get(self):
+        return jsonify({"message": "Payment was cancelled"})
+
+
+class StripePayment(Resource):
+    def post(self):
+        data = request.get_json()
+        amount = int(data.get('amount')) * 100  
+        currency = data.get('currency', 'usd')
+        charity_id = data.get('charity_id')
+        
+        try:
+            payment_intent = stripe.PaymentIntent.create(
+                amount=amount,
+                currency=currency,
+                description="Donation to charity ID {}".format(charity_id),
+                payment_method_types=['card'],
+            )
+            return jsonify({
+                "client_secret": payment_intent['client_secret'],
+                "payment_intent_id": payment_intent['id']
+            }), 200
+        except stripe.error.StripeError as e:
+            return jsonify({"error": str(e)}), 500
+
+#try this payment api 
+api.add_resource(PayPalPayment, '/paypal-payment')
+api.add_resource(PayPalReturn, '/paypal-return')
+api.add_resource(PayPalCancel, '/paypal-cancel')
+api.add_resource(StripePayment, '/stripe-payment')
+
 
 api.add_resource(Total, '/total/<int:id>') 
 
