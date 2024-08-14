@@ -19,8 +19,8 @@ bcrypt = Bcrypt(app)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-os.environ["DB_EXTERNAL_URL"] = "postgresql://postgresql_w2pt_user:C2Vgxw8OmTgcpWPC3VHnG8qYPpOWwnVW@dpg-cqpsak56l47c73ajpk3g-a.oregon-postgres.render.com/charities_donations_db2"
-os.environ["DB_INTERNAL_URL"] = "postgresql://postgresql_w2pt_user:C2Vgxw8OmTgcpWPC3VHnG8qYPpOWwnVW@dpg-cqpsak56l47c73ajpk3g-a/charities_donations_db2"
+os.environ["DB_EXTERNAL_URL"] = "postgresql://postgresql_w2pt_user:C2Vgxw8OmTgcpWPC3VHnG8qYPpOWwnVW@dpg-cqpsak56l47c73ajpk3g-a.oregon-postgres.render.com/charities_donations_db3"
+os.environ["DB_INTERNAL_URL"] = "postgresql://postgresql_w2pt_user:C2Vgxw8OmTgcpWPC3VHnG8qYPpOWwnVW@dpg-cqpsak56l47c73ajpk3g-a/charities_donations_db3"
 
 # Configure SQLAlchemy database URI based on environment variables
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -89,15 +89,17 @@ class Charities(Resource):
         data = request.get_json()
         
         name=data.get('name'),
+        paypal_account=data.get('paypal_account'),
         description=data.get('description'),
         mission_statement = data.get('mission_statement'),
         goals = data.get('goals'),
         impact = data.get('impact'),
         image = data.get('image')
+
         
-        if not all([name, image, description, impact, goals, mission_statement]):
+        if not all([name, image, description, impact, goals, mission_statement, paypal_account]):
             return {'error': '422 Unprocessable Entity'}, 422
-        charity = Charity(name=name, image=image, description=description, impact=impact, goals=goals, mission_statement=mission_statement)
+        charity = Charity(name=name, paypal_account=paypal_account, image=image, description=description, impact=impact, goals=goals, mission_statement=mission_statement)
         
         charity.status = "pending"
         db.session.add(charity)

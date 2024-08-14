@@ -15,7 +15,7 @@ db = SQLAlchemy()
 class Charity(db.Model, SerializerMixin):
     tablename = 'charities'
 
-    serialize_only = ("id", "name", "image", "description", "mission_statement", "impact", "goals", "status")
+    serialize_only = ("id", "name", "image", "description", "paypal_account", "mission_statement", "impact", "goals", "status")
     serialize_rules = ("-users", "-donations")
 
     id = db.Column(db.Integer, primary_key=True)
@@ -26,6 +26,8 @@ class Charity(db.Model, SerializerMixin):
     goals = db.Column(db.String(120), nullable=False, default='')
     impact = db.Column(db.String(120), nullable=False)
     status = db.Column(db.String, default="pending")
+    # Add PayPal account attribute
+    paypal_account = db.Column(String(120), nullable=False)
     
     # Donations received by this charity
     #donations = db.relationship('Donation', back_populates='charity')
@@ -66,7 +68,7 @@ class Charity(db.Model, SerializerMixin):
     stories = db.relationship('Story', back_populates='charity', cascade="all, delete-orphan")
     recurring_donations = db.relationship('RecurringDonation', back_populates='charity', cascade="all, delete-orphan")
     def repr(self):
-        return f'<Charity {self.name} | Image: {self.image}  | Description: {self.description} | Mission Statement: {self.mission_statement}| goals: {self.goals} | impact: {self.impact} | status: {self.status}>'
+        return f'<Charity {self.name}| Paypal account: {self.paypal_account}  | Image: {self.image}  | Description: {self.description} | Mission Statement: {self.mission_statement}| goals: {self.goals} | impact: {self.impact} | status: {self.status}>'
 
 
 # User Model
@@ -83,6 +85,10 @@ class User(db.Model, SerializerMixin):
     email = db.Column(String(120), nullable=False, unique=True)
     _password_hash = db.Column(db.String)
     role = db.Column(db.String, default="donor")
+   
+    
+
+   
 
     @hybrid_property
     def password_hash(self):
@@ -143,9 +149,8 @@ class User(db.Model, SerializerMixin):
     def donationsHistory(self):
         donations = [{'amount': donation.amount, 'date_time_created': donation.date_time_created, 'charity_name': donation.charity.name} for donation in self.donations]
         return donations
-    def repr(self):
-        return f'User {self.username} is created successfully'
-
+    def __repr__(self):
+        return f'User {self.username} | PayPal: {self.paypal_account} created succesfully'
     
 
 #a donation can be made with a user, to a charity, so we require user_id and charity_id as foreign keys
