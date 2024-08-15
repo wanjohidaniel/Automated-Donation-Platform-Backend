@@ -52,10 +52,6 @@ with app.app_context():
     db.session.add_all(Charities)
     db.session.add_all([demo, Admin, john, alexy])
 
-
-    
-    
-
     print("Creating donations....")
     donations = [
         Donation(amount=100.00, user=alexy, charity=Charities[1]),
