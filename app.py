@@ -9,7 +9,7 @@ import paypalrestsdk
 import stripe
 from datetime import datetime
 
-from models import db, Charity, User, Donation
+from models import db, Charity, User, Donation, Beneficiary, BeneficiaryStory
 
 
 app = Flask(__name__)
@@ -327,6 +327,93 @@ class StripePayment(Resource):
             }), 200
         except stripe.error.StripeError as e:
             return jsonify({"error": str(e)}), 500
+        
+# Beneficiary Resources 
+class BeneficiaryById(Resource): 
+    def get(self,id):
+        beneficiary = Beneficiary.query.filter_by(id=id).first()
+        return make_response(jsonify(beneficiary.to_dict())) 
+class Beneficiaries(Resource):
+    def get(self): 
+        beneficiaries = Beneficiary.query.all() 
+        return [beneficiary.to_dict() for beneficiary in beneficiaries], 200 
+    def post(self): 
+        data = request.get_json() 
+        name = data.get('name') 
+        description = data.get('description')
+        inventory_needs = data.get('inventory_needs') 
+        charity_id = data.get('charity_id') 
+        
+        if not all([name, description, charity_id]):
+            return {'error': '422 Unprocessable Entity'}, 422 
+        beneficiary = Beneficiary(name=name, description=description, inventory_needs=inventory_needs, charity_id=charity_id)
+        db.session.add(beneficiary)
+        db.session.commit() 
+        return beneficiary.to_dict(), 201 
+    def put(self, id):
+        data = request.get_json()
+        beneficiary = Beneficiary.query.get(id)
+        if beneficiary is None: 
+            return {"error": "beneficiary not found"}, 404
+        else:
+            beneficiary.name = data.get("name", beneficiary.name)
+        beneficiary.description = data.get("description", beneficiary.description)
+        beneficiary.inventory_needs = data.get("inventory_needs", beneficiary.inventory_needs)
+        db.session.commit() 
+        return {"id": beneficiary.id, "name": beneficiary.name, "description": beneficiary.description} 
+class DeleteBeneficiary(Resource): 
+    def delete(self, id): 
+        beneficiary = Beneficiary.query.get(id)
+        
+        if beneficiary:
+            db.session.delete(beneficiary)
+            db.session.commit()
+            return True 
+        return  False # BeneficiaryStory Resources 
+class BeneficiaryStoryById(Resource): 
+    def get(self, id): 
+        story = BeneficiaryStory.query.filter_by(id=id).first()
+        return make_response(jsonify(story.to_dict())) 
+class BeneficiaryStories(Resource):
+    def get(self):
+        stories = BeneficiaryStory.query.all()
+        return [story.to_dict() for story in stories], 200 
+    def post(self):
+        data = request.get_json()
+        beneficiary_id = data.get('beneficiary_id') 
+        title = data.get('title') 
+        content = data.get('content') 
+        image_url = data.get('image_url') 
+        if not all([beneficiary_id, title, content]): 
+            return {'error': '422, Unprocessable Entity'}, 422 
+        story = BeneficiaryStory(beneficiary_id=beneficiary_id, title=title, content=content, image_url=image_url) 
+        db.session.add(story)
+        db.session.commit() 
+        return story.to_dict(), 201 
+    def put(self, id):
+        data = request.get_json() 
+        story = BeneficiaryStory.query.get(id) 
+        if story is None: 
+            return {"error": "story not found"}, 404 
+        else:
+            story.title = data.get("title", story.title)
+            story.content = data.get("content", story.content)
+            story.image_url = data.get("image_url", story.image_url) 
+            db.session.commit() 
+        return{"id": story.id, "title": story.title, "content": story.content, "image_url": story.image_url} 
+    def delete(self, id): 
+        story = BeneficiaryStory.query.get(id)
+        if story:
+            db.session.delete(story)
+            db.session.commit() 
+            return True 
+        return False
+    
+api.add_resource(BeneficiaryById, '/beneficiaries/<int:id>')
+api.add_resource(Beneficiaries, '/beneficiaries')
+api.add_resource(DeleteBeneficiary, '/beneficiaries/<int:id>/delete')
+api.add_resource(BeneficiaryStoryById, '/beneficiary_stories/<int:id>') 
+api.add_resource(BeneficiaryStories, '/beneficiary_stories')
 
 #try this payment api 
 api.add_resource(PayPalPayment, '/paypal-payment')

@@ -235,3 +235,21 @@ class Story(db.Model, SerializerMixin):
 
     def _repr_(self):
         return f'<Story {self.title}>'
+class Beneficiary(db.Model):
+     id = db.Column(db.Integer, primary_key=True) 
+     name = db.Column(db.String(80), nullable=False)
+     description = db.Column(db.String(200), nullable=False)
+     inventory_needs = db.Column(db.JSON, nullable=True)
+     charity_id =db.Column(db.Integer, db.ForeignKey('charity.id'), nullable=False)
+     beneficiary_stories = db.relationship('BeneficiaryStory',backref='beneficiary', lazy=True, cascade='all, delete-orphan')
+     def to_dict(self): 
+        return { "id": self.id, "name": self.name, "description": self.description, "inventory_needs": self.inventory_needs, "charity_id": self.charity_id } 
+class BeneficiaryStory(db.Model): 
+    id = db.Column(db.Integer, primary_key=True) 
+    beneficiary_id = db.Column(db.Integer,db.ForeignKey('beneficiary.id'), nullable=False) 
+    title = db.Column(db.String(100), nullable=False) 
+    content = db.Column(db.Text, nullable=False) 
+    image_url = db.Column(db.String(255), nullable=True)
+    
+    def to_dict(self): 
+        return { "id": self.id, "beneficiary_id": self.beneficiary_id, "title": self.title, "content": self.content, "image_url": self.image_url }
