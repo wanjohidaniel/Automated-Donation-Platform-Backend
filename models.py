@@ -65,6 +65,7 @@ class Charity(db.Model, SerializerMixin):
         self.status = 'pending'
         db.session.commit()
     donations = db.relationship('Donation', back_populates='charity', cascade="all, delete-orphan")
+    beneficiaries = db.relationship('Beneficiary', back_populates='charity', cascade="all, delete-orphan")
     stories = db.relationship('Story', back_populates='charity', cascade="all, delete-orphan")
     recurring_donations = db.relationship('RecurringDonation', back_populates='charity', cascade="all, delete-orphan")
     def repr(self):
@@ -236,20 +237,28 @@ class Story(db.Model, SerializerMixin):
     def _repr_(self):
         return f'<Story {self.title}>'
 class Beneficiary(db.Model):
+     _tablename_ = 'beneficiaries'
      id = db.Column(db.Integer, primary_key=True) 
      name = db.Column(db.String(80), nullable=False)
      description = db.Column(db.String(200), nullable=False)
      inventory_needs = db.Column(db.JSON, nullable=True)
-     charity_id =db.Column(db.Integer, db.ForeignKey('charity.id'), nullable=False)
+     charity_id = db.Column(db.Integer(), db.ForeignKey('charity.id'), nullable=False)
+
+
+     charity = db.relationship('Charity', back_populates='beneficiaries')
      beneficiary_stories = db.relationship('BeneficiaryStory',backref='beneficiary', lazy=True, cascade='all, delete-orphan')
+     beneficiary_stories = db.relationship('BeneficiaryStory', back_populates='beneficiary', cascade="all, delete-orphan")
      def to_dict(self): 
         return { "id": self.id, "name": self.name, "description": self.description, "inventory_needs": self.inventory_needs, "charity_id": self.charity_id } 
-class BeneficiaryStory(db.Model): 
+class BeneficiaryStory(db.Model):
+    _tablename_ = 'beneficiary_stories' 
     id = db.Column(db.Integer, primary_key=True) 
     beneficiary_id = db.Column(db.Integer,db.ForeignKey('beneficiary.id'), nullable=False) 
     title = db.Column(db.String(100), nullable=False) 
     content = db.Column(db.Text, nullable=False) 
     image_url = db.Column(db.String(255), nullable=True)
+
+    beneficiary = db.relationship('Beneficiary', back_populates='beneficiary_stories')
     
     def to_dict(self): 
         return { "id": self.id, "beneficiary_id": self.beneficiary_id, "title": self.title, "content": self.content, "image_url": self.image_url }

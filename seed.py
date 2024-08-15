@@ -1,15 +1,18 @@
 from app import app
-from models import db, Charity, User, Donation, Story, RecurringDonation, Reminder
+from models import db, Charity, User, Donation, Story, RecurringDonation, Reminder, BeneficiaryStory,Beneficiary
 from flask_bcrypt import Bcrypt
 from datetime import datetime
 
 
 with app.app_context():
-    print("Deleting existing donations,reminders, recurring doantions and stories....")
+    print("Deleting existing donations,reminders, recurring doantions and stories, beneficiarystorues and beneficiaries....")
     Donation.query.delete()
     Reminder.query.delete()
     RecurringDonation.query.delete()
     Story.query.delete()
+
+    BeneficiaryStory.query.delete()
+    Beneficiary.query.delete()
     
     print("Deleting existing users....")
     User.query.delete()
@@ -36,7 +39,7 @@ with app.app_context():
     print('Creating Charity objects...')
     Charities=[
         Charity(name="Save the Children", image="https://images.unsplash.com/photo-1504384308090-c894fdcc538d", description="Save the Children provides education and emergency aid to children in need around the world, including school-going girls in Sub-Saharan Africa.", mission_statement="To help bring out the best in all children.", goals=[], impact='hahsgddysgwhw', status="approved", paypal_account="kituikelly@gmailcom"),
-        Charity(name="Plan International", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="pending", paypal_account="kituikelly@gmailcom"),
+        Charity(name="Plan International", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="approved", paypal_account="kituikelly@gmailcom"),
         Charity(name="Plan International", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="pending", paypal_account="kituikelly@gmailcom"),
         Charity(name="Plan International", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="pending", paypal_account="kituikelly@gmailcom"),
         Charity(name="Plan International", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="pending", paypal_account="kituikelly@gmailcom"),
@@ -46,7 +49,8 @@ with app.app_context():
         Charity(name="Plan International test3", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmB01XeoEwG6S3ekPfHxBoq2n0YsLRKCJslA&s",description="Plan International test3 focuses on advancing children's rights and equality for girls, with programs in Sub-Saharan Africa to support education and health.", mission_statement="To provide food to the hungry.", goals=[], impact='hahsgddysgwhw', status="approved", paypal_account="kituikelly@gmailcom"),
         Charity(name="Girls Not Brides", image = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnNoMNAJXsi-Z1GFofWGkl0OUu_mwdfIdUwQ&s', description="TGirls Not Brides is dedicated to ending child marriage and supporting girls' education in Sub-Saharan Africa through advocacy and direct support.", mission_statement="To provide shelter to the homeless.", goals=[], impact='hahsgddysgwhw', status="pending", paypal_account="kituikelly@gmailcom"),
         Charity(name="jofo", image = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnNoMNAJXsi-Z1GFofWGkl0OUu_mwdfIdUwQ&s', description="TGirls Not Brides is dedicated to ending child marriage and supporting girls' education in Sub-Saharan Africa through advocacy and direct support.", mission_statement="To provide shelter to the homeless.", goals=[], impact='hahsgddysgwhw', status="pending", paypal_account="kituikelly@gmailcom"),
-        Charity(name="sick", image = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnNoMNAJXsi-Z1GFofWGkl0OUu_mwdfIdUwQ&s', description="TGirls Not Brides is dedicated to ending child marriage and supporting girls' education in Sub-Saharan Africa through advocacy and direct support=", paypal_account="kituikelly@gmailcom"),
+        Charity(name="Tryyy", image = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnNoMNAJXsi-Z1GFofWGkl0OUu_mwdfIdUwQ&s', description="TGirls Not Brides is dedicated to ending child marriage and supporting girls' education in Sub-Saharan Africa through advocacy and direct support.", mission_statement="To provide shelter to the homeless.", goals=[], impact='hahsgddysgwhw', status="pending", paypal_account="kituikelly@gmailcom"),
+        
     ]
     # Add sample users
     db.session.add_all(Charities)
@@ -102,9 +106,33 @@ with app.app_context():
     db.session.add_all(reminders)
     db.session.add_all(stories)
     
+    print('Creating Story objects...')
+
+    Stories = [
+        Story(title="Food Drive Success", content="Thanks to your donations, we were able to feed 100 families in our community.", charity=Charities[1], image_url="https://foodbank.org/image1.jpg"),
+        Story(title="Animal Shelter Reunion", content="With your help, we reunited lost pets with their owners and found new homes for many animals.", charity=Charities[2], image_url="https://animalrescue.org/image1.jpg"),
+    ]
+
+    print('Creating Beneficiary objects...')
+
+    Beneficiaries = [
+        Beneficiary(name="Marie's Family", description="A single mother with three kids in need of food and essentials", inventory_needs={"food": "vegetables", "essentials": "clothing"}, charity=Charities[1]),
+        Beneficiary(name="Max the Abandoned Puppy", description="A stray puppy rescued from the streets seeking a loving home", inventory_needs={"food": "dog food", "essentials": "toys"}, charity=Charities[2]),
+    ]
+
+    print('Creating BeneficiaryStory objects...')
+
+    BeneficiaryStories = [
+        BeneficiaryStory(beneficiary=Beneficiaries[1], title="Marie's Story of Hope", content="Your donations helped Marie and her kids get through tough times and have a meal on the table every day.", image_url="https://foodbank.org/marie.jpg"),
+        BeneficiaryStory(beneficiary=Beneficiaries[0], title="Max's Journey to Happiness", content="Thanks to your support, Max found a caring family and a forever home, full of love and playtime.", image_url="https://animalrescue.org/max.jpg"),
+    ]
+
 
     
-    db.session.add_all(donations)
+    db.session.add_all(stories)
+    db.session.add_all(BeneficiaryStories)
+    db.session.add_all(Beneficiaries)
+    
    
     print('Committing transaction...')
     db.session.commit()
